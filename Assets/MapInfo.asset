@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a50c9270bb1e46529db81d6df43a8f9f, type: 3}
   m_Name: MapInfo
   m_EditorClassIdentifier: 
-  mapSize: {x: 5, y: 8}
+  mapSize: {x: 9, y: 9}
   backGround: {fileID: 0}

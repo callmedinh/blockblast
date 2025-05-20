@@ -7,25 +7,26 @@ using UnityEngine.Tilemaps;
 
 public class MapManager : Singleton<MapManager>
 {
-    public int width;
-    public int height;
+    private int _width;
+    private int _height;
     private Point[,] _points;
     
-    public Tilemap tileMap;
+    public Tilemap blockTilemap;
     public Tilemap backgroundTileMap;
-    public TileBase backgroundTileBase;
+    public Tilemap ghostBlockTileMap;
+    [SerializeField] private TileBase backgroundTileBase;
     [SerializeField] private TileBase tileBase;
-    public Grid grid;
+    [SerializeField] private TileBase ghostBlockTileBase;
 
     public static Action InitNewBlocksAction;
     public void InitMap(MapInfo mapInfo)
     {
-        width = mapInfo.mapSize.x;
-        height = mapInfo.mapSize.y;
-        _points = new Point[width, height];
-        for (int i = 0; i < width; i++)
+        _width = mapInfo.mapSize.x;
+        _height = mapInfo.mapSize.y;
+        _points = new Point[_width, _height];
+        for (int i = 0; i < _width; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < _height; j++)
             {
                 _points[i, j] = new Point(i, j);
                 backgroundTileMap.SetTile(new Vector3Int(i, j, 0), backgroundTileBase);
@@ -33,15 +34,37 @@ public class MapManager : Singleton<MapManager>
         }
     }
 
+    public void ShowGhostBlocks(BlockDragHandler block)
+    {
+        ghostBlockTileMap.ClearAllTiles();
+        Transform[] cells = block.GetComponentsInChildren<Transform>();
+        List<Vector3Int> tilePositions = new List<Vector3Int>();
+        
+        foreach (var cell in cells)
+        {
+            Vector3Int tilPos = blockTilemap.WorldToCell(cell.position);
+            if (!IsInsideMap(tilPos.x, tilPos.y)) return;
+            if (ghostBlockTileMap.HasTile(tilPos))
+            {
+                return;
+            }
+            tilePositions.Add(tilPos);
+        }
+
+        foreach (var pos in tilePositions)
+        {
+            ghostBlockTileMap.SetTile(pos, ghostBlockTileBase);
+        }
+    }
     public void TryPlaceBlock(BlockDragHandler block)
     {
         Transform[] cells = block.GetComponentsInChildren<Transform>();
         List<Vector3Int> tilePositions = new List<Vector3Int>();
         foreach (Transform cell in cells)
         {
-            Vector3Int tilPos = tileMap.WorldToCell(cell.position);
+            Vector3Int tilPos = blockTilemap.WorldToCell(cell.position);
             if (!IsInsideMap(tilPos.x, tilPos.y)) return;
-            if (tileMap.HasTile(tilPos))
+            if (blockTilemap.HasTile(tilPos))
             {
                 Debug.Log("Invalid placement: tile already filled");
                 return;
@@ -51,7 +74,7 @@ public class MapManager : Singleton<MapManager>
 
         foreach (var pos in tilePositions)
         {
-            tileMap.SetTile(pos, tileBase);
+            blockTilemap.SetTile(pos, tileBase);
         }
         CheckAndClearLines(tilePositions);
         block.GetComponentInParent<Pooler>().ReturnToPool(block.gameObject);
@@ -75,14 +98,14 @@ public class MapManager : Singleton<MapManager>
     }
     public bool IsInsideMap(float x, float y)
     {
-        return x >= 0 && y >= 0 && x < width && y < height;
+        return x >= 0 && y >= 0 && x < _width && y < _height;
     }
 
     public bool IsRowFull(int y)
     {
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < _width; x++)
         {
-            if (!tileMap.HasTile(new Vector3Int(x, y, 0)))
+            if (!blockTilemap.HasTile(new Vector3Int(x, y, 0)))
             {
                 return false;
             }
@@ -93,9 +116,9 @@ public class MapManager : Singleton<MapManager>
 
     public bool IsColumnFull(int x)
     {
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < _height; y++)
         {
-            if (!tileMap.HasTile(new Vector3Int(x, y, 0)))
+            if (!blockTilemap.HasTile(new Vector3Int(x, y, 0)))
             {
                 return false;
             }
@@ -106,27 +129,27 @@ public class MapManager : Singleton<MapManager>
 
     public void ClearRow(int y)
     {
-        for (int x = 0;x < width; x++)
+        for (int x = 0;x < _width; x++)
         {
-            tileMap.SetTile(new Vector3Int(x, y, 0), null);
+            blockTilemap.SetTile(new Vector3Int(x, y, 0), null);
         }
     }
 
     public void ClearColumn(int x)
     {
-        for (int y = 0; y < height; y++)
+        for (int y = 0; y < _height; y++)
         {
-            tileMap.SetTile(new Vector3Int(x, y, 0), null);
+            blockTilemap.SetTile(new Vector3Int(x, y, 0), null);
         }
     }
 
     public void ResetMap()
     {
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < _width; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < _height; j++)
             {
-                tileMap.SetTile(new Vector3Int(i, j, 0), null);
+                blockTilemap.SetTile(new Vector3Int(i, j, 0), null);
             }
         }
     }

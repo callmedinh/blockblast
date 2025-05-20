@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Block", menuName = "Blockblast/Block")]
 public class Block : MonoBehaviour
 {
     [SerializeField] private Color color;

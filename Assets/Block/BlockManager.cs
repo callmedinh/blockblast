@@ -5,10 +5,7 @@ using Random = UnityEngine.Random;
 
 public class BlockManager : Singleton<BlockManager>
 {
-    [SerializeField] private Pooler poolerL;
-    [SerializeField] private Pooler poolerReverseL;
-    [SerializeField] private Pooler poolerSquare;
-    [SerializeField] private Pooler poolerDot;
+    [SerializeField] private Pooler[] pooler;
     [SerializeField] private Transform[] initPosition;
     public static int BlockCount = 3;
 
@@ -25,22 +22,8 @@ public class BlockManager : Singleton<BlockManager>
     {
         for (int i = 0; i < size; i++)
         {
-            int index = Random.Range(0, 3);
-            switch (index)
-            {
-                case 0:
-                    InitPositionBlock(i, poolerL.GetPooler());
-                    break;
-                case 1: 
-                    InitPositionBlock(i, poolerReverseL.GetPooler());
-                    break;
-                case 2:
-                    InitPositionBlock(i, poolerSquare.GetPooler());
-                    break;
-                case 3:
-                    InitPositionBlock(i, poolerDot.GetPooler());
-                    break;
-            }
+            int index = Random.Range(0, pooler.Length);
+            InitPositionBlock(i, pooler[index].GetPooler());
         }
     }
 
