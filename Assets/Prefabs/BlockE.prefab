@@ -550,7 +550,7 @@ GameObject:
   - component: {fileID: 9017092748708577363}
   - component: {fileID: 2132167072848968938}
   m_Layer: 7
-  m_Name: BlockReverseL
+  m_Name: BlockE
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -587,6 +587,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e5b034744ff0374ca8b9a144a04224e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dragSound: {fileID: 11400000, guid: a34381584ae5f634197544965a68a11a, type: 2}
   isDragging: 0
 --- !u!114 &-4805848793075747989
 MonoBehaviour:
@@ -600,7 +601,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 898da3fb683060d4381e0dd7e77ee3bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.9490196, g: 0.019607844, b: 0.019607844, a: 1}
+  sprite: {fileID: -716073455859571126, guid: ff8c46d8c3433c442bfef034c156c6f4, type: 3}
+  cellsInfo:
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  - {x: 1, y: 1}
+  - {x: 1, y: 2}
 --- !u!50 &9017092748708577363
 Rigidbody2D:
   serializedVersion: 5

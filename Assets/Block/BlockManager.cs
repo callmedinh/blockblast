@@ -1,5 +1,6 @@
-using System;
-using System.Drawing;
+
+using System.Collections.Generic;
+using DefaultNamespace;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -7,17 +8,26 @@ public class BlockManager : Singleton<BlockManager>
 {
     [SerializeField] private Pooler[] pooler;
     [SerializeField] private Transform[] initPosition;
-    public static int BlockCount = 3;
+    public List<Block> availableBlocks = new List<Block>();
 
     private void Update()
     {
-        if (BlockCount == 0)
+        if (availableBlocks.Count == 0 && GameManager.Instance.CurrentGameState == GameState.InGameplay)
         {
-            BlockCount = 3;
-            RandomInitBlock(BlockCount);
+            RandomInitBlock(3);
+        }
+
+        if (!MapManager.Instance.CanPlaceAnyBlocks(availableBlocks))
+        {
+            GameEvent.OnGameOver?.Invoke();
+            foreach (var block in availableBlocks)
+            {
+                block.GetComponentInParent<Pooler>().ReturnToPool(block.gameObject);
+            }
+            availableBlocks.Clear();
         }
     }
-
+    
     public void RandomInitBlock(int size)
     {
         for (int i = 0; i < size; i++)
@@ -30,5 +40,14 @@ public class BlockManager : Singleton<BlockManager>
     public void InitPositionBlock(int i, GameObject prefab)
     {
         prefab.transform.position = initPosition[i].position;
+        availableBlocks.Add(prefab.GetComponent<Block>());
+    }
+
+    public void RemoveBlock(Block block)
+    {
+        if (availableBlocks.Contains(block))
+        {
+            availableBlocks.Remove(block);
+        }
     }
 }

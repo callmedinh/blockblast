@@ -8,28 +8,37 @@ using UnityEngine;
 namespace DefaultNamespace.Utilities
 {
     [Serializable]
-    public class DataUser
+    public class DataUser 
     {
         public int grade;
-    }
-    public class SaveLoadSystem : MonoBehaviour
-    {
-        private string _path;
-        private void Awake()
+
+        public DataUser(int grade)
         {
-            _path = Application.persistentDataPath + "/grade.json";
+            this.grade = grade;
         }
+    }
+    public class SaveLoadSystem : Singleton<SaveLoadSystem>
+    {
+        private static string FileName => "grade.json";
+        private static string FullPath => Path.Combine(Application.persistentDataPath, FileName);
 
         public void Save(DataUser dataUser)
         {
             string json = JsonUtility.ToJson(dataUser);
-            File.WriteAllText(_path, json);
+            Debug.Log("Saving to: " + FullPath);
+            Debug.Log("Data: " + json);
+            File.WriteAllText(FullPath, json);
         }
 
-        public void Load()
+        public DataUser Load()
         {
-            string json = File.ReadAllText(_path);
-            SaveData data = JsonUtility.FromJson<SaveData>(json);
+            if (!File.Exists(FullPath))
+            {
+                Debug.LogWarning("Save file not found. Returning default.");
+                return new DataUser(0);
+            }
+            string json = File.ReadAllText(FullPath);
+            return JsonUtility.FromJson<DataUser>(json);
         }
     }
 }

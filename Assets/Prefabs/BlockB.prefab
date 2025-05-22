@@ -319,6 +319,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e5b034744ff0374ca8b9a144a04224e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dragSound: {fileID: 11400000, guid: a34381584ae5f634197544965a68a11a, type: 2}
   isDragging: 0
 --- !u!50 &2359637156935485550
 Rigidbody2D:
@@ -404,7 +405,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 898da3fb683060d4381e0dd7e77ee3bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.007843138, g: 0.03137255, b: 0.4509804, a: 1}
+  sprite: {fileID: -6167712467775604670, guid: b8c36a840c0df8441b3bbfad298c3261, type: 3}
+  cellsInfo:
+  - {x: 0, y: 0}
+  - {x: 1, y: 0}
+  - {x: 1, y: 1}
+  - {x: 2, y: 1}
 --- !u!1 &5823074968159953913
 GameObject:
   m_ObjectHideFlags: 0

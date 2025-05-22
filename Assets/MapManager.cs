@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DefaultNamespace;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -9,35 +10,79 @@ public class MapManager : Singleton<MapManager>
 {
     private int _width;
     private int _height;
-    private Point[,] _points;
-    
     public Tilemap blockTilemap;
     public Tilemap backgroundTileMap;
     public Tilemap ghostBlockTileMap;
     [SerializeField] private TileBase backgroundTileBase;
     [SerializeField] private TileBase tileBase;
     [SerializeField] private TileBase ghostBlockTileBase;
+    [SerializeField] private Sound clearSound;
+    [SerializeField] private Sound dropSound;
 
-    public static Action InitNewBlocksAction;
+    private void OnEnable()
+    {
+        GameEvent.OnGameOver += ResetMap;
+    }
+
+    private void OnDisable()
+    {
+        GameEvent.OnGameOver -= ResetMap;
+    }
+
     public void InitMap(MapInfo mapInfo)
     {
         _width = mapInfo.mapSize.x;
         _height = mapInfo.mapSize.y;
-        _points = new Point[_width, _height];
         for (int i = 0; i < _width; i++)
         {
             for (int j = 0; j < _height; j++)
             {
-                _points[i, j] = new Point(i, j);
                 backgroundTileMap.SetTile(new Vector3Int(i, j, 0), backgroundTileBase);
             }
         }
     }
 
-    public void ShowGhostBlocks(BlockDragHandler block)
+    public bool CanPlaceAnyBlocks(List<Block> availableBlocks)
+    {
+        List<Vector2Int> freeTile = new();
+        for (int x = 0; x < _width; x++)
+        {
+            for (int y = 0; y < _height; y++)
+            {
+                Vector3Int pos = new Vector3Int(x, y, 0);
+                if (!blockTilemap.HasTile(pos))
+                {
+                    freeTile.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        foreach (var block in availableBlocks)
+        {
+            Vector2Int[] cells = block.cellsInfo;
+            foreach (var origin in freeTile)
+            {
+                bool canPlace = true;
+                foreach (var offset in cells)
+                {
+                    Vector2Int pos = offset + origin;
+                    if (!IsInsideMap(pos.x, pos.y) || blockTilemap.HasTile(new Vector3Int(pos.x, pos.y, 0)))
+                    {
+                        canPlace = false;
+                    }
+                }
+
+                if (canPlace) return true;
+            }
+        }
+        
+        return false;
+    }
+
+    public void ShowGhostBlocks(BlockDragHandler dragHandler)
     {
         ghostBlockTileMap.ClearAllTiles();
-        Transform[] cells = block.GetComponentsInChildren<Transform>();
+        Transform[] cells = dragHandler.transform.Cast<Transform>().ToArray();
         List<Vector3Int> tilePositions = new List<Vector3Int>();
         
         foreach (var cell in cells)
@@ -56,9 +101,10 @@ public class MapManager : Singleton<MapManager>
             ghostBlockTileMap.SetTile(pos, ghostBlockTileBase);
         }
     }
-    public void TryPlaceBlock(BlockDragHandler block)
+    public void TryPlaceBlock(BlockDragHandler dragHandler)
     {
-        Transform[] cells = block.GetComponentsInChildren<Transform>();
+        Transform[] cells = dragHandler.transform.Cast<Transform>().ToArray();
+        Block block = dragHandler.GetComponent<Block>();
         List<Vector3Int> tilePositions = new List<Vector3Int>();
         foreach (Transform cell in cells)
         {
@@ -66,7 +112,6 @@ public class MapManager : Singleton<MapManager>
             if (!IsInsideMap(tilPos.x, tilPos.y)) return;
             if (blockTilemap.HasTile(tilPos))
             {
-                Debug.Log("Invalid placement: tile already filled");
                 return;
             }
             tilePositions.Add(tilPos);
@@ -76,9 +121,12 @@ public class MapManager : Singleton<MapManager>
         {
             blockTilemap.SetTile(pos, tileBase);
         }
+        //Sound
+        GameEvent.OnBlockPlaced();
+        SoundManager.Instance.PlaySFX(dropSound);
         CheckAndClearLines(tilePositions);
-        block.GetComponentInParent<Pooler>().ReturnToPool(block.gameObject);
-        BlockManager.BlockCount--;
+        BlockManager.Instance.RemoveBlock(block);
+        dragHandler.GetComponentInParent<Pooler>().ReturnToPool(dragHandler.gameObject);
     }
 
     void CheckAndClearLines(List<Vector3Int> blockPos)
@@ -88,11 +136,15 @@ public class MapManager : Singleton<MapManager>
             if (IsRowFull(pos.y))
             {
                 ClearRow(pos.y);
+                SoundManager.Instance.PlaySFX(clearSound);
+                GameEvent.OnLinesCleared?.Invoke();
             }
 
             if (IsColumnFull(pos.x))
             {
                 ClearColumn(pos.x);
+                SoundManager.Instance.PlaySFX(clearSound);
+                GameEvent.OnLinesCleared?.Invoke();
             }
         }
     }
@@ -145,12 +197,8 @@ public class MapManager : Singleton<MapManager>
 
     public void ResetMap()
     {
-        for (int i = 0; i < _width; i++)
-        {
-            for (int j = 0; j < _height; j++)
-            {
-                blockTilemap.SetTile(new Vector3Int(i, j, 0), null);
-            }
-        }
+        blockTilemap.ClearAllTiles();
+        ghostBlockTileMap.ClearAllTiles();
+        backgroundTileMap.ClearAllTiles();
     }
 }

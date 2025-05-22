@@ -317,6 +317,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e5b034744ff0374ca8b9a144a04224e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dragSound: {fileID: 11400000, guid: a34381584ae5f634197544965a68a11a, type: 2}
   isDragging: 0
 --- !u!50 &3155589264639217379
 Rigidbody2D:
@@ -402,4 +403,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 898da3fb683060d4381e0dd7e77ee3bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 0.9490196, g: 0.8862745, b: 0.019607844, a: 1}
+  sprite: {fileID: -8799525022697734728, guid: c9bbfcb2703c9bf4fb1356664a76890d, type: 3}
+  cellsInfo:
+  - {x: 0, y: 0}
+  - {x: 1, y: 1}

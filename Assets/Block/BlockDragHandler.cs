@@ -1,20 +1,23 @@
 using System;
+using DefaultNamespace;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 
 public class BlockDragHandler : MonoBehaviour
 {
-    private Transform selectedObject;
+    [SerializeField] private Sound dragSound;
+    private Transform _selectedObject;
     public bool isDragging = false;
-    private Vector2 mousePosition;
+    private Vector2 _mousePosition;
+
     private void Update()
     {
-        mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        _mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
 
         if (isDragging)
         {
-            transform.position = mousePosition;
+            transform.position = _mousePosition;
             MapManager.Instance.ShowGhostBlocks(this);
             if (Mouse.current.leftButton.wasReleasedThisFrame)
             {
@@ -27,5 +30,6 @@ public class BlockDragHandler : MonoBehaviour
     private void OnMouseDown()
     {
         isDragging = true;
+        SoundManager.Instance.PlaySFX(dragSound);
     }
 }
