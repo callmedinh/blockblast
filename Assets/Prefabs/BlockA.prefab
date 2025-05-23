@@ -320,6 +320,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dragSound: {fileID: 11400000, guid: a34381584ae5f634197544965a68a11a, type: 2}
+  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   isDragging: 0
 --- !u!50 &3838841229163209023
 Rigidbody2D:

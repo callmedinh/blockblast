@@ -1,9 +1,8 @@
-using System;
+
 using System.Collections.Generic;
 using System.Linq;
 using DefaultNamespace;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 
 public class MapManager : Singleton<MapManager>
@@ -11,10 +10,10 @@ public class MapManager : Singleton<MapManager>
     private int _width;
     private int _height;
     public Tilemap blockTilemap;
-    public Tilemap backgroundTileMap;
-    public Tilemap ghostBlockTileMap;
+    public Tilemap backgroundTilemap;
+    public Tilemap ghostBlockTilemap;
     [SerializeField] private TileBase backgroundTileBase;
-    [SerializeField] private TileBase tileBase;
+    [SerializeField] private TileBase blockTileBase;
     [SerializeField] private TileBase ghostBlockTileBase;
     [SerializeField] private Sound clearSound;
     [SerializeField] private Sound dropSound;
@@ -29,6 +28,7 @@ public class MapManager : Singleton<MapManager>
         GameEvent.OnGameOver -= ResetMap;
     }
 
+    #region Map Initialization
     public void InitMap(MapInfo mapInfo)
     {
         _width = mapInfo.mapSize.x;
@@ -37,12 +37,18 @@ public class MapManager : Singleton<MapManager>
         {
             for (int j = 0; j < _height; j++)
             {
-                backgroundTileMap.SetTile(new Vector3Int(i, j, 0), backgroundTileBase);
+                backgroundTilemap.SetTile(new Vector3Int(i, j, 0), backgroundTileBase);
             }
         }
-    }
 
-    public bool CanPlaceAnyBlocks(List<Block> availableBlocks)
+        GameEvent.OnMapInitialized?.Invoke(backgroundTilemap);
+    }   
+    #endregion
+
+
+    #region Block Placement
+
+        public bool CanPlaceAnyBlocks(List<Block> availableBlocks)
     {
         List<Vector2Int> freeTile = new();
         for (int x = 0; x < _width; x++)
@@ -79,9 +85,9 @@ public class MapManager : Singleton<MapManager>
         return false;
     }
 
-    public void ShowGhostBlocks(BlockDragHandler dragHandler)
+    public void ShowGhostPreview(BlockDragHandler dragHandler)
     {
-        ghostBlockTileMap.ClearAllTiles();
+        ghostBlockTilemap.ClearAllTiles();
         Transform[] cells = dragHandler.transform.Cast<Transform>().ToArray();
         List<Vector3Int> tilePositions = new List<Vector3Int>();
         
@@ -89,7 +95,7 @@ public class MapManager : Singleton<MapManager>
         {
             Vector3Int tilPos = blockTilemap.WorldToCell(cell.position);
             if (!IsInsideMap(tilPos.x, tilPos.y)) return;
-            if (ghostBlockTileMap.HasTile(tilPos))
+            if (ghostBlockTilemap.HasTile(tilPos))
             {
                 return;
             }
@@ -98,7 +104,7 @@ public class MapManager : Singleton<MapManager>
 
         foreach (var pos in tilePositions)
         {
-            ghostBlockTileMap.SetTile(pos, ghostBlockTileBase);
+            ghostBlockTilemap.SetTile(pos, ghostBlockTileBase);
         }
     }
     public void TryPlaceBlock(BlockDragHandler dragHandler)
@@ -119,15 +125,17 @@ public class MapManager : Singleton<MapManager>
 
         foreach (var pos in tilePositions)
         {
-            blockTilemap.SetTile(pos, tileBase);
+            blockTilemap.SetTile(pos, blockTileBase);
         }
-        //Sound
         GameEvent.OnBlockPlaced();
         SoundManager.Instance.PlaySFX(dropSound);
         CheckAndClearLines(tilePositions);
         BlockManager.Instance.RemoveBlock(block);
         dragHandler.GetComponentInParent<Pooler>().ReturnToPool(dragHandler.gameObject);
     }
+
+    #endregion
+
 
     void CheckAndClearLines(List<Vector3Int> blockPos)
     {
@@ -198,7 +206,7 @@ public class MapManager : Singleton<MapManager>
     public void ResetMap()
     {
         blockTilemap.ClearAllTiles();
-        ghostBlockTileMap.ClearAllTiles();
-        backgroundTileMap.ClearAllTiles();
+        ghostBlockTilemap.ClearAllTiles();
+        backgroundTilemap.ClearAllTiles();
     }
 }

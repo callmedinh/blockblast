@@ -1,4 +1,4 @@
-using System;
+
 using DefaultNamespace.Utilities;
 using UnityEngine;
 
@@ -12,34 +12,75 @@ namespace DefaultNamespace
     {
         [SerializeField] private MapInfo mapInfo;
         public GameState CurrentGameState { get; private set; } = GameState.GameOver;
+        public int CurrentScore { get; private set; }
+        public int BestScore { get; private set; }
+
+        private void Awake()
+        {
+            LoadData();
+        }
 
         private void Start()
         {
-            InitInGamestate();
+            StartGameplay();
         }
 
         private void OnEnable()
         {
-            GameEvent.OnStartGame += InitInGamestate;
-            GameEvent.OnGameOver += ChangeGameState;
+            GameEvent.OnGameStarted += StartGameplay;
+            GameEvent.OnGameOver += GameOver;
+            GameEvent.OnBlockPlaced += HandleBlockPlaced;
+            GameEvent.OnLinesCleared += HandleLinesCleared;
         }
 
         private void OnDisable()
         {
-            GameEvent.OnStartGame -= InitInGamestate;
-            GameEvent.OnGameOver -= ChangeGameState;
+            GameEvent.OnGameStarted -= StartGameplay;
+            GameEvent.OnGameOver -= GameOver;
+            GameEvent.OnBlockPlaced -= HandleBlockPlaced;
+            GameEvent.OnLinesCleared -= HandleLinesCleared;
+        }
+        
+        public void StartGameplay()
+        {
+            CurrentScore = 0;
+            LoadData();
+            UIManager.Instance.ShowGameplayUI(CurrentScore, BestScore);
+            MapManager.Instance.InitMap(mapInfo);
+            CurrentGameState = GameState.InGameplay;
+            //BlockManager.Instance.SpawnRandomBlocks(3);
         }
 
-        private void ChangeGameState()
+        public void HandleBlockPlaced()
         {
+            CurrentScore++;
+            UIManager.Instance.UpdateScore(CurrentScore, BestScore);
+        }
+
+        public void HandleLinesCleared()
+        {
+            CurrentScore += 9;
+            UIManager.Instance.UpdateScore(CurrentScore, BestScore);
+        }
+        public void GameOver()
+        {
+            if (CurrentScore > BestScore)
+            {
+                SaveData();
+            }
+            UIManager.Instance.ShowGameOverUI(CurrentScore, BestScore);
             CurrentGameState = GameState.GameOver;
         }
-        private void InitInGamestate()
+
+        void SaveData()
         {
-            MapManager.Instance.InitMap(mapInfo);
-            CameraController.Instance.SetPosition(mapInfo.mapSize);
-            BlockManager.Instance.RandomInitBlock(3);
-            CurrentGameState = GameState.InGameplay;
+            SaveLoadSystem.Instance.Save(new DataUser(CurrentScore));
+        }
+
+        void LoadData()
+        {
+            var data = SaveLoadSystem.Instance.Load();
+            BestScore = data.grade;
         }
     }
 }

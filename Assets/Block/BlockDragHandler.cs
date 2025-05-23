@@ -7,29 +7,72 @@ using UnityEngine.Tilemaps;
 public class BlockDragHandler : MonoBehaviour
 {
     [SerializeField] private Sound dragSound;
-    private Transform _selectedObject;
+    
+    public InputActionAsset inputActions;
+    
     public bool isDragging = false;
-    private Vector2 _mousePosition;
+    private Camera _mainCamera;
+
+    private Vector2 _pointerPosition;
+    private InputAction _pointAction;
+    private InputAction _clickAction;
+
+    private void Awake()
+    {
+        _mainCamera = Camera.main;
+    }
+
+    private void OnEnable()
+    {
+        var gameplayMap = inputActions.FindActionMap("Gameplay");
+        if (gameplayMap == null)
+        {
+            Debug.LogError("Gameplay action map not found!");
+            return;
+        }
+        
+        _pointAction = gameplayMap.FindAction("Point");
+        _clickAction = gameplayMap.FindAction("Click");
+        
+        if (_pointAction == null || _clickAction == null)
+        {
+            Debug.LogError("Point or Click action not found!");
+            return;
+        }
+
+        _pointAction.Enable();
+        _clickAction.Enable();
+    }
 
     private void Update()
     {
-        _mousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-
-        if (isDragging)
+        _pointerPosition = Camera.main.ScreenToWorldPoint(_pointAction.ReadValue<Vector2>());
+        if (_clickAction.WasPressedThisFrame())
         {
-            transform.position = _mousePosition;
-            MapManager.Instance.ShowGhostBlocks(this);
-            if (Mouse.current.leftButton.wasReleasedThisFrame)
+            if (IsPointerOverThisBlock())
             {
-                isDragging = false;
-                MapManager.Instance.TryPlaceBlock(this);
+                isDragging = true;
+                SoundManager.Instance.PlaySFX(dragSound);
             }
         }
+
+        if (_clickAction.IsPressed() && isDragging)
+        {
+            transform.position = _pointerPosition;
+            MapManager.Instance.ShowGhostPreview(this);
+        }
+
+        if (_clickAction.WasReleasedThisFrame())
+        {
+            isDragging = false;
+            MapManager.Instance.TryPlaceBlock(this);
+        }
+        
     }
 
-    private void OnMouseDown()
+    bool IsPointerOverThisBlock()
     {
-        isDragging = true;
-        SoundManager.Instance.PlaySFX(dragSound);
+        var  hit = Physics2D.Raycast(_pointerPosition, Vector2.zero);    
+        return hit.collider != null && hit.transform == transform;
     }
 }
