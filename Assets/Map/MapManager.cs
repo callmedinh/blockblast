@@ -1,7 +1,9 @@
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DefaultNamespace;
+using Events;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -22,8 +24,8 @@ public class MapManager : Singleton<MapManager>
     {
         GameEvent.OnGameOver += ResetMap;
     }
-
-    private void OnDisable()
+    // su dung Awake/Destroy thay vi OnEnable/OnDisable vi Map su dung singleton (Luon ton tai)
+    private void OnDestroy()
     {
         GameEvent.OnGameOver -= ResetMap;
     }
@@ -127,7 +129,7 @@ public class MapManager : Singleton<MapManager>
         {
             blockTilemap.SetTile(pos, blockTileBase);
         }
-        GameEvent.OnBlockPlaced();
+        GameEvent.OnBlockPlaced?.Invoke();
         SoundManager.Instance.PlaySFX(dropSound);
         CheckAndClearLines(tilePositions);
         BlockManager.Instance.RemoveBlock(block);

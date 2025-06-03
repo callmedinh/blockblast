@@ -1,6 +1,7 @@
 
 using System.Collections.Generic;
 using DefaultNamespace;
+using Events;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -50,7 +51,7 @@ public class BlockManager : Singleton<BlockManager>
 
     private void DetermineSpawnPosition()
     {
-        _spawnPos = SystemInfo.deviceType == DeviceType.Handheld ? HandheldPos : ComputerPos;
+        _spawnPos = HandheldPos;
     }
     
     public void SpawnRandomBlocks(int size)
@@ -59,7 +60,6 @@ public class BlockManager : Singleton<BlockManager>
         {
             int index = Random.Range(0, pooler.Length);
             if (pooler == null) Debug.LogError("NUll");
-            Debug.Log("Spawn: " + pooler[index].name);
             PlaceBlockAtInitPosition(i, pooler[index].GetPooler());
         }
     }

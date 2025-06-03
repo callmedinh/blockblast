@@ -1,4 +1,5 @@
 using DefaultNamespace;
+using Events;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -34,7 +35,7 @@ public class CameraController : Singleton<CameraController>
         mainCamera.orthographicSize = Mathf.Max(cameraSizeX + offset, cameraSizeY + offset);
         
         Vector3 center = bounds.center;
-        mainCamera.transform.position = new Vector3(center.x, center.y, -10f);
+        mainCamera.transform.position = new Vector3(center.x, center.y - 1f, -10f);
     }
 
     
