@@ -4,7 +4,6 @@ using Events;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Utilities;
 
 namespace UI
 {
@@ -12,17 +11,33 @@ namespace UI
     {
         [SerializeField] private Button settingButton;
         [SerializeField] private TMP_Text scoreText;
+        [SerializeField] private TMP_Text timerText;
+        Timer _timer;
 
-        //event action
-        public event Action OnSettingButtonClicked;
-        private void Awake()
+        private void OnEnable()
         {
-            settingButton.onClick.AddListener(() => OnSettingButtonClicked?.Invoke());
+            _timer = new Timer(timerText);
+            settingButton.onClick.AddListener(HandleSettingButtonClick);
+            ScoreManager.Instance.OnScoreChanged += DisplayScore;
         }
 
-        public void DisplayScore(int score)
+        private void Update()
+        {
+            _timer.DisplayTimer();
+        }
+
+        private void OnDisable()
+        {
+            settingButton.onClick.RemoveListener(HandleSettingButtonClick);
+        }
+
+        private void DisplayScore(int score)
         {
             scoreText.text = score.ToString();
+        }
+        void HandleSettingButtonClick()
+        {
+            GameManager.Instance.ChangeState(GameState.Setting);
         }
     }
 }

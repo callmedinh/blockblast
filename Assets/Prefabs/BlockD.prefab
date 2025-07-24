@@ -281,6 +281,7 @@ GameObject:
   - component: {fileID: 3010923171229129355}
   - component: {fileID: 2076914200513102134}
   - component: {fileID: -8524687322086279430}
+  - component: {fileID: 8133446053655466439}
   m_Layer: 7
   m_Name: BlockD
   m_TagString: Untagged
@@ -319,7 +320,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e5b034744ff0374ca8b9a144a04224e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dragSound: {fileID: 11400000, guid: a34381584ae5f634197544965a68a11a, type: 2}
   inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   isDragging: 0
 --- !u!114 &3010923171229129355
@@ -412,6 +412,19 @@ CompositeCollider2D:
   m_OffsetDistance: 0.00005
   m_UseDelaunayMesh: 0
   m_CompositeGameObject: {fileID: 3359474182237610390}
+--- !u!114 &8133446053655466439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3359474182237610390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a3425f74dcb4c178a9ecef98cc8267b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blockType: 3
 --- !u!1 &6846095403020257105
 GameObject:
   m_ObjectHideFlags: 0

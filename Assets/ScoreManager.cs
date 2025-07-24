@@ -1,48 +1,42 @@
-
 using System;
+using Block;
+using Data;
 using Events;
 
-namespace DefaultNamespace
+public class ScoreManager : Singleton<ScoreManager>
 {
-    public class ScoreManager : Singleton<ScoreManager>
+    public int CurrentScore { get; private set; }
+    
+    public event Action<int> OnScoreChanged;
+    private void OnEnable()
     {
-        public int CurrentScore { get; private set; }
-        public int BestScore { get; private set; }
+        GameEvent.OnBlockPlaced += AddScoreForBlockBlaced;
+        GameEvent.OnLinesCleared += AddScoreForLinesCleared;
+        GameEvent.OnGameStarted += ResetScore;
+    }
+    void AddScoreForBlockBlaced(BlockController block)
+    {
+        CurrentScore++;
+        OnScoreChanged?.Invoke(CurrentScore);
+    }
 
-        //event relate to score
-        public event Action<int> OnScoreChanged;
-        private void OnEnable()
-        {
-            GameEvent.OnBlockPlaced += AddScoreForBlockBlaced;
-            GameEvent.OnLinesCleared += AddScoreForLinesCleared;
-            GameEvent.OnGameStarted += ResetScore;
-            GameEvent.OnGameOver += CheckForBestScoreAndSave;
-        }
+    void AddScoreForLinesCleared()
+    {
+        CurrentScore += 9;
+        OnScoreChanged?.Invoke(CurrentScore);
+    }
 
-        void CheckForBestScoreAndSave()
-        {
-            if (CurrentScore > BestScore)
-            {
-                BestScore = CurrentScore;
-                GameEvent.OnBestScoreChanged?.Invoke(BestScore);
-            }
-        }
-        void AddScoreForBlockBlaced()
-        {
-            CurrentScore++;
-            OnScoreChanged?.Invoke(CurrentScore);
-        }
+    public void HandleGameOver()
+    {
+        var entry  = new GameDataEntry(CurrentScore, DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"));
+        var container = SaveLoadSystem.Instance.LoadGameData();
+        container.gameDataList.Add(entry);
+        SaveLoadSystem.Instance.SaveGameData(container);
+    }
 
-        void AddScoreForLinesCleared()
-        {
-            CurrentScore += 9;
-            OnScoreChanged?.Invoke(CurrentScore);
-        }
-
-        void ResetScore()
-        {
-            CurrentScore = 0;
-            OnScoreChanged?.Invoke(CurrentScore);
-        }
+    void ResetScore()
+    {
+        CurrentScore = 0;
+        OnScoreChanged?.Invoke(CurrentScore);
     }
 }

@@ -1,11 +1,15 @@
-namespace DefaultNamespace
+namespace Block
 {
     public enum BlockType
     {
-        Type1,
-        Type2,
-        Type3,
-        Type4,
-        Type5
+        TypeA,
+        TypeB,
+        TypeC,
+        TypeD,
+        TypeE,
+        TypeF,
+        TypeG,
+        TypeH,
+        TypeI,
     }
 }

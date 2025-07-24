@@ -1,72 +1,68 @@
-using System;
-using System.Runtime.InteropServices;
-using DefaultNamespace;
+using Events;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.UI;
-using DG.Tweening;
+using Utilities;
 
 namespace UI
 {
     public class SettingView : BaseUIView
     {
-        [SerializeField] private Slider sfxSlider;
-        [SerializeField] private Slider musicSlider;
-        [SerializeField] private Button closeButton;
+        [SerializeField] private Toggle soundToggle;
+        [SerializeField] private Toggle musicToggle;
+        [SerializeField] private Button exitButton;
+        [SerializeField] private Button saveButton;
 
-        [SerializeField] private float _fadeTime = 1f;
-        [SerializeField] private CanvasGroup _canvasGroup;
-        [SerializeField] private RectTransform _rectTransform;
-        
-        //event
-        public event Action<float> OnSfxChanged;
-        public event Action<float> OnMusicChanged;
-        public event Action OnClosedButtonClicked;
 
-        private void Awake()
+        [SerializeField] private float fadeTime = 1f;
+        [SerializeField] private CanvasGroup canvasGroup;
+        [SerializeField] private RectTransform rectTransform;
+        private readonly ITransition _fadeInTransition = new FadeIn();
+        private readonly ITransition _fadeOutTransition = new FadeOut();
+
+        [SerializeField] private AudioMixer mixer;
+        private void OnEnable()
         {
-            sfxSlider.onValueChanged.AddListener(OnSfxSliderChange);
-            musicSlider.onValueChanged.AddListener(OnMusicSliderChange);
-            closeButton.onClick.AddListener(OnCloseButtonClick);
+            exitButton.onClick.AddListener(HandleExitButtonClick);
+            soundToggle.onValueChanged.AddListener(ApplySoundChanged);
+            musicToggle.onValueChanged.AddListener(ApplyMusicChanged);
+            saveButton.onClick.AddListener(HandleSaveButtonClick);
+        }
+
+        private void OnDisable()
+        {
+            exitButton.onClick.RemoveListener(HandleExitButtonClick);
+            saveButton.onClick.RemoveListener(HandleSaveButtonClick);
         }
 
         protected override void OnShow()
         {
             base.OnShow();
-            PanelFadeIn();
+            _fadeInTransition.Transition(fadeTime, ref canvasGroup, ref rectTransform);
         }
 
         protected override void OnHide()
         {
-            PanelFadeOut();
+            base.OnHide();
+            _fadeOutTransition.Transition(fadeTime, ref canvasGroup, ref rectTransform);
         }
 
-        public void OnCloseButtonClick()
+        private void HandleExitButtonClick()
         {
-            OnClosedButtonClicked?.Invoke();
-        }
-        public void OnMusicSliderChange(float value)
-        {
-            OnMusicChanged?.Invoke(value);
+            GameManager.Instance.ChangeState(GameState.InGameplay);
         }
 
-        public void OnSfxSliderChange(float value)
+        private void HandleSaveButtonClick()
         {
-            OnSfxChanged?.Invoke(value);
+            GameManager.Instance.ChangeState(GameState.InGameplay);
         }
-
-        public void PanelFadeIn()
+        void ApplyMusicChanged(bool isOn)
         {
-            _canvasGroup.alpha = 0;
-            _rectTransform.transform.localPosition = new Vector3(0, -1000, 0);
-            _rectTransform.DOAnchorPos(new Vector2(0f, 0f), _fadeTime, false).SetEase(Ease.OutElastic);
-            _canvasGroup.DOFade(1, _fadeTime);
+            mixer.SetFloat(GameConstants.MusicMixer, isOn ? 0f : -80f);
         }
-        public void PanelFadeOut()
+        void ApplySoundChanged(bool isOn)
         {
-            _canvasGroup.alpha = 0;
-            _rectTransform.transform.localPosition = new Vector3(0, -1000, 0);
-            _rectTransform.DOAnchorPos(new Vector2(0f, 0f), _fadeTime, false).SetEase(Ease.OutElastic);
-            _canvasGroup.DOFade(1, _fadeTime);
+            mixer.SetFloat(GameConstants.SfxMixer, isOn ? 0f : -80f);
         }
     }
 }

@@ -1,29 +1,67 @@
-using System;
-using DefaultNamespace;
-using Unity.VisualScripting;
+using System.Collections.Generic;
+using Roots;
 using UnityEngine;
 
-public class SoundManager : Singleton<SoundManager>
+namespace Audio
 {
-    [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private AudioSource musicSource;
-    [SerializeField] private AudioClip gameMusic;
-
-    public void PlaySFX(Sound sound)
+    public class SoundManager : Singleton<SoundManager>
     {
-        sound?.Play(sfxSource);
+        [SerializeField] private AudioSource sfxSource;
+        [SerializeField] private AudioSource musicSource;
+        [SerializeField] private AudioProfile[] musicProfiles;
+        Dictionary<State, AudioProfile> _audioMap = new();
+
+        private void Awake()
+        {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            foreach (var musicProfile in musicProfiles)
+            {
+                _audioMap[musicProfile.state] = musicProfile;
+            }
+        }
+
+        public void Play(State state)
+        {
+            if (_audioMap.TryGetValue(state, out var profile))
+            {
+                if (profile.type == AudioType.Music)
+                {
+                    PlayMusic(profile.clip);
+                }
+                else
+                {
+                    PlaySfx(profile.clip);
+                }
+            }
+        }
+        void PlayMusic(AudioClip clip)
+        {
+            musicSource.clip = clip;
+            musicSource.Play();
+        }
+        void PlaySfx(AudioClip clip)
+        {
+            sfxSource.PlayOneShot(clip);
+        }
     }
 
-    private void Awake()
+    public enum AudioType
     {
-        PlayMusic(gameMusic);
+        Sound,
+        Music
     }
 
-    public void PlayMusic(AudioClip clip)
+    public enum State
     {
-        if (musicSource.clip ==  clip) return;
-        musicSource.clip = clip;
-        musicSource.loop = true;
-        musicSource.Play();
+        Click,
+        Satisfy,
+        Drag,
+        Drop,
+        GameOver,
+        Gameplay,
     }
 }

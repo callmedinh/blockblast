@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace DefaultNamespace
+namespace UI
 {
     public abstract class BaseUIView : MonoBehaviour
     {
